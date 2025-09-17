@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { VOCABULARY } from './constants';
 import { ResultState, QuizMode } from './types';
@@ -31,6 +32,13 @@ const SpeakerIcon = () => (
     </svg>
 );
 
+const ShareIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6.002l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.368a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+  </svg>
+);
+
+
 const App: React.FC = () => {
   const [words, setWords] = useState<VocabWord[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -39,6 +47,7 @@ const App: React.FC = () => {
   const [showHint, setShowHint] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [quizMode, setQuizMode] = useState<QuizMode>(getRandomQuizMode());
+  const [showShareConfirmation, setShowShareConfirmation] = useState(false);
 
   useEffect(() => {
     setWords(shuffleArray(VOCABULARY));
@@ -126,7 +135,17 @@ const App: React.FC = () => {
     setShowHint(false);
     setIsFinished(false);
     setQuizMode(getRandomQuizMode());
-  }
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setShowShareConfirmation(true);
+      setTimeout(() => setShowShareConfirmation(false), 2000); // Hide after 2 seconds
+    }).catch(err => {
+      console.error('Failed to copy link: ', err);
+      alert('Failed to copy link.');
+    });
+  };
 
   if (words.length === 0 || !currentWord) {
     return (
@@ -163,9 +182,23 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-xl mx-auto">
-        <header className="text-center mb-8">
+        <header className="text-center mb-8 relative">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800">English Vocabulary Quiz</h1>
           <p className="text-slate-600 mt-2">6학년 영어 단어 (과거형) 연습</p>
+          <div className="absolute top-0 right-0">
+             <button
+                onClick={handleShare}
+                className="p-3 rounded-full text-slate-500 hover:bg-slate-200 transition-colors"
+                aria-label="Share this quiz"
+             >
+                <ShareIcon />
+            </button>
+            {showShareConfirmation && (
+              <div className="absolute top-14 right-0 bg-slate-800 text-white text-sm px-3 py-1 rounded-md shadow-lg transition-opacity duration-300 animate-pulse">
+                Link copied!
+              </div>
+            )}
+          </div>
         </header>
 
         <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 relative">
